@@ -24,7 +24,8 @@ RUN apt-get update && \
       $(lsb_release -cs) \
       stable" && \
     apt-get update && \
-    apt-get -y install docker-ce 
+    apt-get -y install docker-ce  && \
+    RUN apt-get update && apt-get install -y git
 
 
 RUN groupadd -f docker && usermod -aG docker jenkins
