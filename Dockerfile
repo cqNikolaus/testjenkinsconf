@@ -24,11 +24,10 @@ RUN apt-get update && \
       $(lsb_release -cs) \
       stable" && \
     apt-get update && \
-    apt-get -y install docker-ce && \
-    apt-get update && \
-    apt-get install -y docker-ce-cli
+    apt-get -y install docker-ce 
 
-RUN groupadd docker && usermod -aG docker jenkins
+
+RUN groupadd -f docker && usermod -aG docker jenkins
 
 
 RUN git clone https://github.com/cqNikolaus/jenkins_automation /tmp/repo && \
