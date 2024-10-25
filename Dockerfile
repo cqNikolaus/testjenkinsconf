@@ -14,6 +14,8 @@ RUN groupadd docker && usermod -aG docker jenkins
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
 RUN jenkins-plugin-cli -f /usr/share/jenkins/ref/plugins.txt
 
+COPY *.secrets /run/secrets/
+
 COPY *.yaml /var/jenkins_home/casc_configs/
 
 ENV CASC_JENKINS_CONFIG /var/jenkins_home/casc_configs
