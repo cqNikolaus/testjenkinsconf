@@ -10,8 +10,8 @@ jenkins:
     local:
       allowsSignup: false
       users:
-       - id: "training"
-         password: ${password.secrets}
+       - id: "${ADMIN_USER}"
+         password: "${ADMIN_PASS}"
          
 
   clouds:
