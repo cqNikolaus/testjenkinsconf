@@ -24,16 +24,13 @@ RUN apt-get update && \
       $(lsb_release -cs) \
       stable" && \
     apt-get update && \
-    apt-get -y install docker-ce  && \
-    RUN apt-get update && apt-get install -y git
+    apt-get -y install docker-ce 
 
 
 RUN groupadd -f docker && usermod -aG docker jenkins
 
 
-RUN git clone https://github.com/cqNikolaus/jenkins_automation /tmp/repo && \
-    cp /tmp/repo/*.yaml /var/jenkins_home/casc_configs/ && \
-    rm -rf /tmp/repo
+
 
 
 
@@ -72,6 +69,9 @@ COPY *.secrets /run/secrets/
 
 # casc preparation
 COPY *.yaml /var/jenkins_home/casc_configs/
+RUN git clone https://github.com/cqNikolaus/jenkins_automation /tmp/repo && \
+    cp /tmp/repo/*.yaml /var/jenkins_home/casc_configs/ && \
+    rm -rf /tmp/repo
 ENV CASC_JENKINS_CONFIG /var/jenkins_home/casc_configs
 
 # install plugins
