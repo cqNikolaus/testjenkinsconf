@@ -16,7 +16,10 @@ RUN jenkins-plugin-cli -f /usr/share/jenkins/ref/plugins.txt
 
 
 COPY *.yaml /var/jenkins_home/casc_configs/
-COPY jenkins_automation/*.yaml /var/jenkins_home/casc_configs/
+
+RUN git clone https://github.com/cqNikolaus/jenkins_automation /tmp/repo && \
+    cp /tmp/repo/*.yaml /var/jenkins_home/casc_configs/ && \
+    rm -rf /tmp/repo
 
 ENV CASC_JENKINS_CONFIG /var/jenkins_home/casc_configs
 ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
