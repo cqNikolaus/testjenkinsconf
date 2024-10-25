@@ -1,0 +1,132 @@
+jenkins:
+  systemMessage: "Jenkins Controller for Jenkins Pipeline Advanced Training - powered by <a href=\"https://comquent.academy?utm_source=jenkins&utm_id=training\" ­target=\"_blank\"­>Comquent Academy</a>"
+  markupFormatter:
+    rawHtml:
+      disableSyntaxHighlighting: false
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+       - id: "training"
+         password: ${password.secrets}
+         
+
+  clouds:
+  - docker:
+      dockerApi:
+        connectTimeout: 60
+        dockerHost:
+          uri: "unix:///var/run/docker.sock"
+        readTimeout: 60
+      name: "docker"
+      templates:
+      - connector: "attach"
+        dockerTemplateBase:
+          cpuPeriod: 0
+          cpuQuota: 0
+          image: "jenkins/agent"
+        instanceCapStr: "1"
+        labelString: "docker"
+        mode: EXCLUSIVE
+        pullStrategy: PULL_ALWAYS
+        pullTimeout: 300
+        remoteFs: "/home/jenkins/agent"
+#  - kubernetes:
+#      containerCap: 10
+#      containerCapStr: "10"
+#      credentialsId: "k8s_token"
+#      name: "kubernetes"
+#      namespace: "jenkins"
+#      serverUrl: "https://cp-25479.cluster.ionos.com:10962"
+#      templates:
+#      - containers:
+#        - args: "9999999"
+#          command: "sleep"
+#          image: "maven:3.8.1-jdk-8"
+#          livenessProbe:
+#            failureThreshold: 0
+#            initialDelaySeconds: 0
+#            periodSeconds: 0
+#            successThreshold: 0
+#            timeoutSeconds: 0
+#          name: "maven"
+#          workingDir: "/home/jenkins/agent"
+#        id: "551baade-fcb1-4a4f-98f6-c9ff8aca0dc6"
+#        label: "maven"
+#        name: "maven"
+#        namespace: "jenkins"
+#        yamlMergeStrategy: "override"      
+
+  nodes:
+  - permanent:
+      name: "MyAgent01"
+      nodeDescription: "My static agent via ssh"
+      nodeProperties:
+      - toolLocation:
+          locations:
+          - home: "/home/jenkins/tools/java/jdk1.8.0_192"
+            key: "hudson.model.JDK$DescriptorImpl@JDK8"
+          - home: "/home/jenkins/tools/maven/apache-maven-3.5.4"
+            key: "hudson.tasks.Maven$MavenInstallation$DescriptorImpl@MVN354"
+          - home: "/home/jenkins/tools/maven/apache-maven-3.6.3"
+            key: "hudson.tasks.Maven$MavenInstallation$DescriptorImpl@MVN363"
+          - home: "/home/jenkins/tools/maven/apache-maven-3.8.5"
+            key: "hudson.tasks.Maven$MavenInstallation$DescriptorImpl@MVN385"      
+      labelString: "demo linux ssh"
+      launcher:
+        ssh:
+          host: "XXX.XXX.XXX.XXX"
+          port: 22
+          credentialsId: "agent-account"
+          sshHostKeyVerificationStrategy: "nonVerifyingKeyVerificationStrategy"
+      mode: EXCLUSIVE
+      numExecutors: 2
+      remoteFS: "/home/jenkins/agent"
+      retentionStrategy: "always"
+
+credentials:
+  system:
+    domainCredentials:
+    - credentials:
+      - usernamePassword:
+          description: "Account Credentials fuer den SSH Agent"
+          id: "agent-account"
+          password: ${readFile:/run/secrets/agent-password.secrets}
+          scope: GLOBAL
+          username: "jenkins"
+      - usernamePassword:
+          id: "cq-academy-gitlab-access"
+          password: "${readFile:/run/secrets/gitlab-password.secrets}"
+          scope: GLOBAL
+          username: "tn00"
+
+appearance:
+  locale:
+    systemLocale: en
+    ignoreAcceptLanguage: true
+# unclassified:  
+#  locale:
+#    ignoreAcceptLanguage: true
+#    systemLocale: "EN"
+
+tool:
+  git:
+    installations:
+    - home: "git"
+      name: "Default"
+  jdk:
+    installations:
+    - home: "/usr/share/jenkins/tools/java/jdk1.8.0_192"
+      name: "JDK8"
+  maven:
+    installations:
+    - home: "/usr/share/jenkins/tools/maven/apache-maven-3.5.4"
+      name: "MVN354"
+    - home: "/usr/share/jenkins/tools/maven/apache-maven-3.6.3"
+      name: "MVN363"
+    - home: "/usr/share/jenkins/tools/maven/apache-maven-3.8.8"
+      name: "MVN388"
+

@@ -1,0 +1,62 @@
+jobs:
+  - script: >
+      folder('PetClinic') {
+        displayName('PetClinic')
+        description('Folder containing PetClinic')
+      }
+
+      folder('Samples') {
+        displayName('Samples')
+        description('Folder containing Samples')
+      }
+
+      pipelineJob('Samples/Musterloesung') {
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  name('origin')
+                  url('https://gitlab.comquent.academy/tn00/petclinic.git')
+                }                        
+                branch('musterloesung')
+              }
+            }
+          }
+        }
+      }
+      
+      pipelineJob('Samples/Parallel') {
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  name('origin')
+                  url('https://gitlab.comquent.academy/tn00/petclinic.git')
+                }                        
+                branch('musterloesung')
+              }
+            }
+            scriptPath('Jenkinsfile_parallel')
+          }
+        }
+      }
+
+      pipelineJob('Samples/Docker') {
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  name('origin')
+                  url('https://gitlab.comquent.academy/tn00/petclinic.git')
+                }                        
+                branch('docker')
+              }
+            }
+          }
+        }
+      }
+    
+
