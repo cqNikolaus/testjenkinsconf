@@ -29,7 +29,12 @@ RUN apt-get update && \
 
 RUN groupadd -f docker && usermod -aG docker jenkins
 
+RUN mkdir -p /var/jenkins_home/casc_configs && \
+    chown -R jenkins:jenkins /var/jenkins_home/casc_configs
 
+RUN git clone https://github.com/cqNikolaus/jenkins_automation /tmp/repo && \
+    cp /tmp/repo/*.yaml /var/jenkins_home/casc_configs/ && \
+    rm -rf /tmp/repo
 
 
 
@@ -69,9 +74,7 @@ COPY *.secrets /run/secrets/
 
 # casc preparation
 COPY *.yaml /var/jenkins_home/casc_configs/
-RUN git clone https://github.com/cqNikolaus/jenkins_automation /tmp/repo && \
-    cp /tmp/repo/*.yaml /var/jenkins_home/casc_configs/ && \
-    rm -rf /tmp/repo
+
 ENV CASC_JENKINS_CONFIG /var/jenkins_home/casc_configs
 
 # install plugins
