@@ -1,0 +1,134 @@
+jenkins:
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "${ADMIN_USER}"
+          password: "${ADMIN_PASS}"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+credentials:
+  system:
+    domainCredentials:
+    - credentials:
+      - usernamePassword:
+          scope: GLOBAL
+          id: "jenkins-admin-credentials"
+          username: "${ADMIN_USER}"
+          password: "${ADMIN_PASS}"
+          description: "Jenkins Admin Credentials"
+      - string:
+          scope: GLOBAL
+          id: "hetzner-api-token"
+          secret: ${API_TOKEN}
+          description: "Hetzner API Token"
+      - string:
+          scope: GLOBAL
+          id: "hetzner-dns-api-token"
+          secret: "${DNS_API_TOKEN}"
+          description: "Hetzner DNS API Token"
+      - basicSSHUserPrivateKey:
+          scope: GLOBAL
+          id: "ssh-private-key"
+          username: "root"
+          description: "SSH Private Key"
+          privateKeySource:
+            directEntry:
+              privateKey: "${SSH_PRIVATE_KEY}"
+
+jobs:
+  - script: >
+      pipelineJob('docker-test') {
+        definition {
+          cps {
+            script('''
+              pipeline {
+                agent any
+                stages {
+                  stage('test docker') {
+                    steps {
+                      sh 'docker ps'
+                    }
+                  }
+                }
+              }
+            ''')
+            sandbox()
+          }
+        }
+      }
+
+  - script: >
+      pipelineJob('jenkins-env-automation') {
+        description('This job automates Jenkins setup, testing, and environment management.')
+        parameters {
+          stringParam('DOMAIN', '', 'Specify the domain for the Jenkins instance, e.g. jenkinsinstance.comquent.academy')
+          stringParam('CONFIG_REPO', '', 'GitHub link to the configuration repository.')
+          stringParam('BRANCH', '', 'Branch of the configuration repository to use (optional).')
+        }
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('https://github.com/cqNikolaus/jenkins_automation')
+                }
+                branches('*/main')
+              }
+            }
+            scriptPath('Jenkinsfile')
+          }
+        }
+      }
+
+  - script: >
+      pipelineJob('jenkins-setup') {
+        description('This job sets up Jenkins using the Jenkinsfile_setup.')
+        parameters {
+          stringParam('DOMAIN', '', 'Specify the domain for the Jenkins instance, e.g. jenkinsinstance.comquent.academy')
+          stringParam('CONFIG_REPO', '', 'GitHub link to the configuration repository.')
+          stringParam('BRANCH', '', 'Branch of the configuration repository to use (optional).')
+        }
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('https://github.com/cqNikolaus/jenkins_automation.git')
+                }
+                branches('*/main')
+              }
+            }
+            scriptPath('Jenkinsfile_Setup')
+          }
+        }
+      }
+
+
+  - script: >
+      pipelineJob('BuildImage') {
+        definition {
+          cps {
+            script('''
+              node() {
+                git branch: 'main', url: 'https://github.com/cqNikolaus/jenkins_automation.git'
+                sh "ls -lart"
+                sh "docker build --no-cache -t python-build ."
+              }
+            ''')
+            sandbox()
+          }
+        }
+      }
+
+
+unclassified:
+  location:
+    url: "${DOMAIN}"
+
+appearance:
+  locale:
+    systemLocale: en
+    ignoreAcceptLanguage: true
