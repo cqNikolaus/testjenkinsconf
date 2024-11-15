@@ -87,32 +87,6 @@ jenkins:
       remoteFS: "/home/jenkins/agent"
       retentionStrategy: "always"
       
-  - permanent:
-      name: "MyAgent02"
-      nodeDescription: "My secondary static agent for testing"
-      nodeProperties:
-      - toolLocation:
-          locations:
-          - home: "/home/jenkins/tools/java/jdk11.0.10"
-            key: "hudson.model.JDK$DescriptorImpl@JDK11"
-          - home: "/home/jenkins/tools/maven/apache-maven-3.6.3"
-            key: "hudson.tasks.Maven$MavenInstallation$DescriptorImpl@MVN363"
-          - home: "/home/jenkins/tools/maven/apache-maven-3.8.8"
-            key: "hudson.tasks.Maven$MavenInstallation$DescriptorImpl@MVN388"
-      labelString: "test linux ssh"
-      launcher:
-        ssh:
-          host: "YYY.YYY.YYY.YYY"
-          port: 22
-          credentialsId: "agent-account"
-          sshHostKeyVerificationStrategy: "nonVerifyingKeyVerificationStrategy"
-      mode: NORMAL
-      numExecutors: 1
-      remoteFS: "/home/jenkins/agent"
-      retentionStrategy: "always"
-    
-      
-
 
 credentials:
   system:
