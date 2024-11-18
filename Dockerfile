@@ -2,7 +2,7 @@
 # FROM jenkins/jenkins:lts-jdk11
 # FROM jenkins/jenkins:lts-jdk17
 # FROM jenkins/jenkins:2.452.1-lts-jdk17
-FROM jenkins/jenkins:2.462.1-lts-jdk17
+FROM jenkins/jenkins:latest
 
 USER root
 
@@ -28,11 +28,6 @@ RUN apt-get update && \
 
 RUN groupadd -f docker && usermod -aG docker jenkins
 
-RUN mkdir -p /var/jenkins_home/casc_configs && \
-    chown -R jenkins:jenkins /var/jenkins_home/casc_configs && \
-    git clone https://github.com/cqNikolaus/jenkins_automation /tmp/repo && \
-    cp /tmp/repo/*.yaml /var/jenkins_home/casc_configs/ && \
-    rm -rf /tmp/repo
 
 # ##### https://docs.docker.com/engine/install/ubuntu/ #####
 
