@@ -5,7 +5,7 @@ workflow-aggregator
 docker-workflow
 junit
 docker-plugin
-cobertura
+coverage
 
 # support plugins
 job-dsl

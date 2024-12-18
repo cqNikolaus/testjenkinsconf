@@ -10,6 +10,44 @@ jobs:
         description('Folder containing Samples')
       }
 
+      pipelineJob('Samples/Coverage') {
+        definition {
+          cps {
+            script("""
+              pipeline {
+                agent any
+                stages {
+                  stage('Checkout') {
+                    steps {
+                      git(
+                        url: 'https://gitlab.comquent.academy/tn00/petclinic.git',
+                        branch: 'musterloesung'
+                      )
+                    }
+                  }
+                  stage('Test') {
+                    steps {
+                      sh 'mvn test'
+                      junit 'target/surefire-reports/*.xml'
+                    }
+                  }
+                  stage('Coverage') {
+                    steps {
+                      sh 'mvn cobertura:cobertura'
+                      // Coverage Plugin nutzen, um den Cobertura-Report anzuzeigen:
+                      recordCoverage(
+                        tools: [[parser: 'COBERTURA', pattern: 'target/site/cobertura/coverage.xml']],
+                        sourceCodeRetention: 'LAST_BUILD' // kann angepasst werden
+                      )
+                    }
+                  }
+                }
+              }
+            """)
+          }
+        }
+      }
+
       pipelineJob('Samples/Musterloesung') {
         definition {
           cpsScm {
