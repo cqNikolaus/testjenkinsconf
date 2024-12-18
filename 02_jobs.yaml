@@ -28,7 +28,7 @@ jobs:
                   stage('Test') {
                     steps {
                       withMaven(maven: 'MVN354') {
-                        sh 'mvn test'
+                        sh 'mvn test -Dwro4j.skip=true'
                       }
                       junit 'target/surefire-reports/*.xml'
                     }
@@ -36,7 +36,7 @@ jobs:
                   stage('Coverage') {
                     steps {
                       withMaven(maven: 'MVN354') {
-                        sh 'mvn cobertura:cobertura'
+                        sh 'mvn cobertura:cobertura -Dwro4j.skip=true'
                       }
                       recordCoverage(
                         tools: [[parser: 'COBERTURA', pattern: 'target/site/cobertura/coverage.xml']],
