@@ -13,7 +13,7 @@ jobs:
       pipelineJob('Samples/Coverage') {
         definition {
           cps {
-            script("""
+            script('''
               pipeline {
                 agent {
                   docker {
@@ -52,7 +52,6 @@ jobs:
                         mkdir -p dcover
                         wget "$DIFFBLUE_RELEASE_URL" -O dcover/dcover.zip -q
                         unzip -o dcover/dcover.zip -d dcover
-                        # Pfad zur dcover ausführbaren Datei speichern
                         echo "export DIFFBLUE_COVER_LOCATION=dcover/dcover" >> $WORKSPACE/env.sh
                       '''
                     }
@@ -62,11 +61,6 @@ jobs:
                       sh '''
                         source $WORKSPACE/env.sh
                         echo "Run Diffblue Cover to generate tests..."
-                        # Durch die Befehle ci, activate, build, validate, create werden:
-                        # - Lizenz aktiviert
-                        # - Projekt gebaut
-                        # - Vorhandene Tests validiert
-                        # - Neue Tests generiert
                         $DIFFBLUE_COVER_LOCATION ci activate build validate create
                       '''
                     }
@@ -82,11 +76,10 @@ jobs:
                   }
                 }
               }
-            """)
+            ''')
           }
         }
-      }  // Ende pipelineJob('Samples/Coverage')
-
+      }
 
       pipelineJob('Samples/Musterloesung') {
         definition {
@@ -96,7 +89,7 @@ jobs:
                 remote {
                   name('origin')
                   url('https://gitlab.comquent.academy/tn00/petclinic.git')
-                }                        
+                }
                 branch('musterloesung')
               }
             }
@@ -112,7 +105,7 @@ jobs:
                 remote {
                   name('origin')
                   url('https://gitlab.comquent.academy/tn00/petclinic.git')
-                }                        
+                }
                 branch('musterloesung')
               }
             }
@@ -129,11 +122,10 @@ jobs:
                 remote {
                   name('origin')
                   url('https://gitlab.comquent.academy/tn00/petclinic.git')
-                }                        
+                }
                 branch('docker')
               }
             }
           }
         }
       }
-
