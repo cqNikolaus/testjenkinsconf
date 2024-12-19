@@ -10,7 +10,129 @@ jobs:
         description('Folder containing Samples')
       }
 
+      pipelineJob('Samples/Coverage') {
+        definition {
+          cps {
+            script("""
+              pipeline {
+                agent {
+                  docker {
+                    image 'maven:3.8.8-eclipse-temurin-8'
+                    args '-u root:root'
+                  }
+                }
+                environment {
+                  // URL zum aktuellsten Diffblue Cover CLI Release-Paket
+                  DIFFBLUE_RELEASE_URL = 'https://release.diffblue.com/cli/latest'
+                  // Lizenz-Key aus den Jenkins-Credentials holen
+                  DIFFBLUE_LICENSE_KEY = credentials('diffblue-license-key')
+                }
+                stages {
+                  stage('Checkout') {
+                    steps {
+                      git(
+                        url: 'https://github.com/cqNikolaus/petclinic',
+                        branch: 'musterloesung'
+                      )
+                    }
+                  }
+                  stage('Initial Test & Coverage') {
+                    steps {
+                      sh 'mvn clean verify'
+                      recordCoverage(
+                        tools: [[parser: 'JACOCO', pattern: 'target/site/jacoco/jacoco.xml']],
+                        sourceCodeRetention: 'LAST_BUILD'
+                      )
+                    }
+                  }
+                  stage('Setup Diffblue Cover CLI') {
+                    steps {
+                      sh '''
+                        echo "Download and setup Diffblue Cover CLI..."
+                        mkdir -p dcover
+                        wget "$DIFFBLUE_RELEASE_URL" -O dcover/dcover.zip -q
+                        unzip -o dcover/dcover.zip -d dcover
+                        # Pfad zur dcover ausführbaren Datei speichern
+                        echo "export DIFFBLUE_COVER_LOCATION=dcover/dcover" >> $WORKSPACE/env.sh
+                      '''
+                    }
+                  }
+                  stage('Generate Tests with Diffblue') {
+                    steps {
+                      sh '''
+                        source $WORKSPACE/env.sh
+                        echo "Run Diffblue Cover to generate tests..."
+                        # Durch die Befehle ci, activate, build, validate, create werden:
+                        # - Lizenz aktiviert
+                        # - Projekt gebaut
+                        # - Vorhandene Tests validiert
+                        # - Neue Tests generiert
+                        $DIFFBLUE_COVER_LOCATION ci activate build validate create
+                      '''
+                    }
+                  }
+                  stage('New Coverage after Diffblue') {
+                    steps {
+                      sh 'mvn verify'
+                      recordCoverage(
+                        tools: [[parser: 'JACOCO', pattern: 'target/site/jacoco/jacoco.xml']],
+                        sourceCodeRetention: 'LAST_BUILD'
+                      )
+                    }
+                  }
+                }
+              }
+            """)
+          }
+        }
+      }  // Ende pipelineJob('Samples/Coverage')
 
+
+      pipelineJob('Samples/onlyCoverage') {
+        definition {
+          cps {
+            script("""
+              pipeline {
+                agent {
+                  docker {
+                    image 'maven:3.8.8-eclipse-temurin-8'
+                    args '-u root:root'
+                  }
+                }
+                stages {
+                  stage('Checkout') {
+                    steps {
+                      git(
+                        url: 'https://github.com/cqNikolaus/petclinic',
+                        branch: 'musterloesung'
+                      )
+                    }
+                  }
+                  stage('Test') {
+                    steps {
+                      sh 'mvn test -Dmaven.test.failure.ignore=true'
+                      junit 'target/surefire-reports/*.xml'
+                    }
+                  }  
+                  stage('Coverage') {
+                    steps {
+                      // Anstatt cobertura:cobertura nun einen regulären Build-Step ausführen, 
+                      // der den Jacoco-Report erzeugt, z.B. `mvn verify`
+                      sh 'mvn verify'
+                      
+                      // Parser auf JACOCO ändern und auf den Jacoco-Report zeigen
+                      recordCoverage(
+                        tools: [[parser: 'JACOCO', pattern: 'target/site/jacoco/jacoco.xml']],
+                        sourceCodeRetention: 'LAST_BUILD'
+                      )
+                    }
+                  }
+                }
+              }
+            """)
+          }
+        }
+      }  
 
       pipelineJob('Samples/Musterloesung') {
         definition {
@@ -27,7 +149,7 @@ jobs:
           }
         }
       }
-      
+
       pipelineJob('Samples/Parallel') {
         definition {
           cpsScm {
@@ -60,5 +182,4 @@ jobs:
           }
         }
       }
-    
 
