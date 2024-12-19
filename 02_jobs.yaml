@@ -88,52 +88,6 @@ jobs:
       }  // Ende pipelineJob('Samples/Coverage')
 
 
-      pipelineJob('Samples/onlyCoverage') {
-        definition {
-          cps {
-            script("""
-              pipeline {
-                agent {
-                  docker {
-                    image 'maven:3.8.8-eclipse-temurin-8'
-                    args '-u root:root'
-                  }
-                }
-                stages {
-                  stage('Checkout') {
-                    steps {
-                      git(
-                        url: 'https://github.com/cqNikolaus/petclinic',
-                        branch: 'musterloesung'
-                      )
-                    }
-                  }
-                  stage('Test') {
-                    steps {
-                      sh 'mvn test -Dmaven.test.failure.ignore=true'
-                      junit 'target/surefire-reports/*.xml'
-                    }
-                  }  
-                  stage('Coverage') {
-                    steps {
-                      // Anstatt cobertura:cobertura nun einen regulären Build-Step ausführen, 
-                      // der den Jacoco-Report erzeugt, z.B. `mvn verify`
-                      sh 'mvn verify'
-                      
-                      // Parser auf JACOCO ändern und auf den Jacoco-Report zeigen
-                      recordCoverage(
-                        tools: [[parser: 'JACOCO', pattern: 'target/site/jacoco/jacoco.xml']],
-                        sourceCodeRetention: 'LAST_BUILD'
-                      )
-                    }
-                  }
-                }
-              }
-            """)
-          }
-        }
-      }  
-
       pipelineJob('Samples/Musterloesung') {
         definition {
           cpsScm {
