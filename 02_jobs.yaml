@@ -21,6 +21,12 @@ jobs:
                     args '-u root:root'
                   }
                 }
+                environment {
+                  // URL zum aktuellsten Diffblue Cover CLI Release-Paket
+                  DIFFBLUE_RELEASE_URL = 'https://release.diffblue.com/cli/latest'
+                  // Lizenz-Key aus den Jenkins-Credentials holen
+                  DIFFBLUE_LICENSE_KEY = credentials('diffblue-license-key')
+                }
                 stages {
                   stage('Checkout') {
                     steps {
@@ -39,13 +45,32 @@ jobs:
                       )
                     }
                   }
-                  
-                  stage('Diffblue Generate Tests') {
+                  stage('Setup Diffblue Cover CLI') {
                     steps {
-                      sh 'mvn diffblue:cover'
+                      sh '''
+                        echo "Download and setup Diffblue Cover CLI..."
+                        mkdir -p dcover
+                        wget "$DIFFBLUE_RELEASE_URL" -O dcover/dcover.zip -q
+                        unzip -o dcover/dcover.zip -d dcover
+                        # Pfad zur dcover ausführbaren Datei speichern
+                        echo "export DIFFBLUE_COVER_LOCATION=dcover/dcover" >> $WORKSPACE/env.sh
+                      '''
                     }
                   }
-                  
+                  stage('Generate Tests with Diffblue') {
+                    steps {
+                      sh '''
+                        source $WORKSPACE/env.sh
+                        echo "Run Diffblue Cover to generate tests..."
+                        # Durch die Befehle ci, activate, build, validate, create werden:
+                        # - Lizenz aktiviert
+                        # - Projekt gebaut
+                        # - Vorhandene Tests validiert
+                        # - Neue Tests generiert
+                        $DIFFBLUE_COVER_LOCATION ci activate build validate create
+                      '''
+                    }
+                  }
                   stage('New Coverage after Diffblue') {
                     steps {
                       sh 'mvn verify'
