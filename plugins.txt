@@ -6,6 +6,7 @@ docker-workflow
 junit
 docker-plugin
 coverage
+diffblue-cover
 
 # support plugins
 job-dsl
