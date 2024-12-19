@@ -30,13 +30,23 @@ jobs:
                       )
                     }
                   }
-                  stage('Test') {
+                  stage('Initial Test & Coverage') {
                     steps {
-                      sh 'mvn test -Dmaven.test.failure.ignore=true'
-                      junit 'target/surefire-reports/*.xml'
+                      sh 'mvn clean verify'
+                      recordCoverage(
+                        tools: [[parser: 'JACOCO', pattern: 'target/site/jacoco/jacoco.xml']],
+                        sourceCodeRetention: 'LAST_BUILD'
+                      )
                     }
-                  }  
-                  stage('Coverage') {
+                  }
+                  
+                  stage('Diffblue Generate Tests') {
+                    steps {
+                      sh 'mvn diffblue:cover'
+                    }
+                  }
+                  
+                  stage('New Coverage after Diffblue') {
                     steps {
                       sh 'mvn verify'
                       recordCoverage(
@@ -47,10 +57,6 @@ jobs:
                   }
                 }
               }
-            """)
-          }
-        }
-      }
 
       pipelineJob('Samples/Musterloesung') {
         definition {
