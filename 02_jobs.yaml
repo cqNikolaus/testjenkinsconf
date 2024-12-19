@@ -15,31 +15,32 @@ jobs:
           cps {
             script("""
               pipeline {
-                agent any
+                agent {
+                  docker {
+                    image 'maven:3.8.8-eclipse-temurin-8'
+                    args '-u root:root'
+                  }
+                }
                 stages {
                   stage('Checkout') {
                     steps {
                       git(
-                        url: 'https://gitlab.comquent.academy/tn00/petclinic.git',
+                        url: 'https://github.com/cqNikolaus/petclinic',
                         branch: 'musterloesung'
                       )
                     }
                   }
                   stage('Test') {
                     steps {
-                      withMaven(maven: 'MVN354') {
-                        sh 'mvn test -Dwro4j.skip=true'
-                      }
+                      sh 'mvn test -Dmaven.test.failure.ignore=true'
                       junit 'target/surefire-reports/*.xml'
                     }
-                  }
+                  }  
                   stage('Coverage') {
                     steps {
-                      withMaven(maven: 'MVN354') {
-                        sh 'mvn cobertura:cobertura -Dwro4j.skip=true'
-                      }
+                      sh 'mvn verify'
                       recordCoverage(
-                        tools: [[parser: 'COBERTURA', pattern: 'target/site/cobertura/coverage.xml']],
+                        tools: [[parser: 'JACOCO', pattern: 'target/site/jacoco/jacoco.xml']],
                         sourceCodeRetention: 'LAST_BUILD'
                       )
                     }
