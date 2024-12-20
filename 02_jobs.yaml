@@ -13,8 +13,7 @@ jobs:
       pipelineJob('Samples/Coverage') {
         definition {
           cps {
-            // Hier dreifache Single Quotes für den gesamten Pipeline-Code
-            script('''
+            script("""
               pipeline {
                 agent {
                   docker {
@@ -38,7 +37,7 @@ jobs:
                   stage('Configure Git Safe Directory') {
                     steps {
                       sh '''
-                        git config --global --add safe.directory "$WORKSPACE"
+                        git config --global --add safe.directory "\$WORKSPACE"
                       '''
                     }
                   }
@@ -61,29 +60,25 @@ jobs:
                       sh '''
                         echo "Download and setup Diffblue Cover CLI..."
                         mkdir -p dcover
-                        wget "$DIFFBLUE_RELEASE_URL" -O dcover/dcover.zip -q
+                        wget "\$DIFFBLUE_RELEASE_URL" -O dcover/dcover.zip -q
                         unzip -o dcover/dcover.zip -d dcover
-                        echo "export DIFFBLUE_COVER_LOCATION=dcover/dcover" >> "$WORKSPACE/env.sh"
+                        echo "export DIFFBLUE_COVER_LOCATION=dcover/dcover" >> \$WORKSPACE/env.sh
                       '''
                     }
                   }
                   stage('Generate Tests with Diffblue') {
                     steps {
-                      withCredentials([
-                        usernamePassword(
-                          credentialsId: 'github-credentials', 
-                          usernameVariable: 'GH_USER', 
-                          passwordVariable: 'GH_PASS'
-                        )
-                      ]) {
-                        sh '''
-                          . "$WORKSPACE/env.sh"
-                          echo "Run Diffblue Cover to generate tests..."
-                          git config user.name "cqNikolaus"
-                          git config user.email "clemens.nikolaus@comquent.de"
-                          git remote set-url origin "https://${GH_USER}:${GH_PASS}@github.com/cqNikolaus/petclinic.git"
-                          "$DIFFBLUE_COVER_LOCATION" ci activate "$DBLUE_LICENSE_KEY" build validate create
-                        '''
+                      withCredentials([usernamePassword(credentialsId: 'github-credentials', 
+                                      usernameVariable: 'GH_USER', 
+                                      passwordVariable: 'GH_PASS')]) {
+                      sh '''
+                        . \$WORKSPACE/env.sh
+                        echo "Run Diffblue Cover to generate tests..."
+                        git config user.name "cqNikolaus"
+                        git config user.email "clemens.nikolaus@comquent.de"
+                        git remote set-url origin "https://$\{GH_USER}:$\{GH_PASS}@github.com/cqNikolaus/petclinic.git"
+                        \$DIFFBLUE_COVER_LOCATION ci activate "\$DBLUE_LICENSE_KEY" build validate create
+                      '''
                       }
                     }
                   }
@@ -98,7 +93,7 @@ jobs:
                   }
                 }
               }
-            ''')
+            """)
           }
         }
       }
