@@ -34,6 +34,18 @@ jobs:
                       )
                     }
                   }
+                  stage('Configure Git Safe Directory') {
+                    steps {
+                      sh '''
+                        git config --global --add safe.directory "$WORKSPACE"
+                      '''
+                    }
+                  }
+                  stage('Install unzip') {
+                    steps {
+                      sh 'apt-get update && apt-get install -y unzip'
+                    }
+                  }
                   stage('Initial Test & Coverage') {
                     steps {
                       sh 'mvn clean verify'
@@ -59,7 +71,7 @@ jobs:
                       sh '''
                         source \$WORKSPACE/env.sh
                         echo "Run Diffblue Cover to generate tests..."
-                        \$DIFFBLUE_COVER_LOCATION ci activate build validate create
+                        \$DIFFBLUE_COVER_LOCATION ci activate "\$DIFFBLUE_LICENSE_KEY" build validate create
                       '''
                     }
                   }
