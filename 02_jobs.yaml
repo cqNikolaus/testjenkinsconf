@@ -68,11 +68,18 @@ jobs:
                   }
                   stage('Generate Tests with Diffblue') {
                     steps {
+                      withCredentials([usernamePassword(credentialsId: 'github-credentials', 
+                                      usernameVariable: 'GH_USER', 
+                                      passwordVariable: 'GH_PASS')]) {
                       sh '''
                         . \$WORKSPACE/env.sh
                         echo "Run Diffblue Cover to generate tests..."
+                        git config user.name "cqNikolaus"
+                        git config user.email "clemens.nikolaus@comquent.de"
+                        git remote set-url origin "https://${GH_USER}:${GH_PASS}@github.com/cqNikolaus/petclinic.git"
                         \$DIFFBLUE_COVER_LOCATION ci activate "\$DBLUE_LICENSE_KEY" build validate create
                       '''
+                      }
                     }
                   }
                   stage('New Coverage after Diffblue') {
