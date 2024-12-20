@@ -44,18 +44,18 @@ jobs:
                       sh '''
                         echo "Download and setup Diffblue Cover CLI..."
                         mkdir -p dcover
-                        wget "$DIFFBLUE_RELEASE_URL" -O dcover/dcover.zip -q
+                        wget "\$DIFFBLUE_RELEASE_URL" -O dcover/dcover.zip -q
                         unzip -o dcover/dcover.zip -d dcover
-                        echo "export DIFFBLUE_COVER_LOCATION=dcover/dcover" >> $WORKSPACE/env.sh
+                        echo "export DIFFBLUE_COVER_LOCATION=dcover/dcover" >> \$WORKSPACE/env.sh
                       '''
                     }
                   }
                   stage('Generate Tests with Diffblue') {
                     steps {
                       sh '''
-                        source $WORKSPACE/env.sh
+                        source \$WORKSPACE/env.sh
                         echo "Run Diffblue Cover to generate tests..."
-                        $DIFFBLUE_COVER_LOCATION ci activate build validate create
+                        \$DIFFBLUE_COVER_LOCATION ci activate build validate create
                       '''
                     }
                   }
