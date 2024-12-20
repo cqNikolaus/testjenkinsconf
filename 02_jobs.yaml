@@ -21,12 +21,6 @@ jobs:
                     args '-u root:root'
                   }
                 }
-                environment {
-                  // URL zum aktuellsten Diffblue Cover CLI Release-Paket
-                  DIFFBLUE_RELEASE_URL = 'https://release.diffblue.com/cli/latest'
-                  // Lizenz-Key aus den Jenkins-Credentials holen
-                  DIFFBLUE_LICENSE_KEY = credentials('diffblue-license-key')
-                }
                 stages {
                   stage('Checkout') {
                     steps {
