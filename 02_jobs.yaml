@@ -21,6 +21,42 @@ jobs:
                     args '-u root:root'
                   }
                 }
+                stages {
+                  stage('Checkout') {
+                    steps {
+                      git(
+                        url: 'https://github.com/cqNikolaus/petclinic',
+                        branch: 'musterloesung'
+                      )
+                    }
+                  }
+                  stage('Test & Coverage') {
+                    steps {
+                      sh 'mvn clean verify'
+                      recordCoverage(
+                        tools: [[parser: 'JACOCO', pattern: 'target/site/jacoco/jacoco.xml']],
+                        sourceCodeRetention: 'LAST_BUILD'
+                      )
+                    }
+                  }
+                }
+              }
+            """)
+          }
+        }
+      }
+
+      pipelineJob('Samples/Diffblue') {
+        definition {
+          cps {
+            script("""
+              pipeline {
+                agent {
+                  docker {
+                    image 'maven:3.8.8-eclipse-temurin-8'
+                    args '-u root:root'
+                  }
+                }
                 environment {
                   DIFFBLUE_RELEASE_URL = 'https://release.diffblue.com/cli/latest'
                   DBLUE_LICENSE_KEY = credentials('diffblue-license-key')
@@ -46,15 +82,6 @@ jobs:
                       sh 'apt-get update && apt-get install -y unzip'
                     }
                   }
-                  stage('Initial Test & Coverage') {
-                    steps {
-                      sh 'mvn clean verify'
-                      recordCoverage(
-                        tools: [[parser: 'JACOCO', pattern: 'target/site/jacoco/jacoco.xml']],
-                        sourceCodeRetention: 'LAST_BUILD'
-                      )
-                    }
-                  }
                   stage('Setup Diffblue Cover CLI') {
                     steps {
                       sh '''
@@ -71,78 +98,20 @@ jobs:
                       withCredentials([usernamePassword(credentialsId: 'github-credentials', 
                                       usernameVariable: 'GH_USER', 
                                       passwordVariable: 'GH_PASS')]) {
-                      sh '''
-                        . \$WORKSPACE/env.sh
-                        echo "Run Diffblue Cover to generate tests..."
-                        git config user.name "cqNikolaus"
-                        git config user.email "clemens.nikolaus@comquent.de"
-                        git remote set-url origin "https://\$GH_USER:\$GH_PASS@github.com/cqNikolaus/petclinic.git"
-                        \$DIFFBLUE_COVER_LOCATION ci activate "\$DBLUE_LICENSE_KEY" build validate create
-                      '''
+                        sh '''
+                          . \$WORKSPACE/env.sh
+                          echo "Run Diffblue Cover to generate tests..."
+                          git config user.name "cqNikolaus"
+                          git config user.email "clemens.nikolaus@comquent.de"
+                          git remote set-url origin "https://\$GH_USER:\$GH_PASS@github.com/cqNikolaus/petclinic.git"
+                          \$DIFFBLUE_COVER_LOCATION ci activate "\$DBLUE_LICENSE_KEY" build validate create
+                        '''
                       }
-                    }
-                  }
-                  stage('New Coverage after Diffblue') {
-                    steps {
-                      sh 'mvn verify'
-                      recordCoverage(
-                        tools: [[parser: 'JACOCO', pattern: 'target/site/jacoco/jacoco.xml']],
-                        sourceCodeRetention: 'LAST_BUILD'
-                      )
                     }
                   }
                 }
               }
             """)
-          }
-        }
-      }
-
-      pipelineJob('Samples/Musterloesung') {
-        definition {
-          cpsScm {
-            scm {
-              git {
-                remote {
-                  name('origin')
-                  url('https://gitlab.comquent.academy/tn00/petclinic.git')
-                }
-                branch('musterloesung')
-              }
-            }
-          }
-        }
-      }
-
-      pipelineJob('Samples/Parallel') {
-        definition {
-          cpsScm {
-            scm {
-              git {
-                remote {
-                  name('origin')
-                  url('https://gitlab.comquent.academy/tn00/petclinic.git')
-                }
-                branch('musterloesung')
-              }
-            }
-            scriptPath('Jenkinsfile_parallel')
-          }
-        }
-      }
-
-      pipelineJob('Samples/Docker') {
-        definition {
-          cpsScm {
-            scm {
-              git {
-                remote {
-                  name('origin')
-                  url('https://gitlab.comquent.academy/tn00/petclinic.git')
-                }
-                branch('docker')
-              }
-            }
           }
         }
       }
