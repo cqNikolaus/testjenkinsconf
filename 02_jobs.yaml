@@ -13,8 +13,6 @@ jobs:
       pipelineJob('Samples/Coverage') {
         definition {
           cps {
-            // WICHTIG: Dreifache Single-Quotes für das gesamte Skript
-            // So wird KEINE GString-Interpolation beim Laden durchgeführt.
             script('''
               pipeline {
                 agent {
@@ -24,11 +22,10 @@ jobs:
                   }
                 }
                 environment {
-                  // URL zum aktuellsten Diffblue Cover CLI Release-Paket
+                  // Nur statische Variablen hier!
                   DIFFBLUE_RELEASE_URL = 'https://release.diffblue.com/cli/latest'
-                  // Lizenz-Key aus den Jenkins-Credentials holen
-                  DIFFBLUE_LICENSE_KEY = credentials('diffblue-license-key')
                 }
+
                 stages {
                   stage('Checkout') {
                     steps {
@@ -38,6 +35,7 @@ jobs:
                       )
                     }
                   }
+
                   stage('Initial Test & Coverage') {
                     steps {
                       sh 'mvn clean verify'
@@ -47,18 +45,31 @@ jobs:
                       )
                     }
                   }
+
+                  // Hier holen wir die Credentials rein, bevor wir sie in Setup Diffblue nutzen
+                  stage('Load Credentials') {
+                    steps {
+                      withCredentials([string(credentialsId: 'diffblue-license-key', variable: 'DIFFBLUE_LICENSE_KEY')]) {
+                        sh '''
+                          echo "export DIFFBLUE_LICENSE_KEY=\\"$DIFFBLUE_LICENSE_KEY\\"" >> "$WORKSPACE/env.sh"
+                        '''
+                      }
+                    }
+                  }
+
                   stage('Setup Diffblue Cover CLI') {
                     steps {
                       sh '''
+                        source "$WORKSPACE/env.sh"
                         echo "Download and setup Diffblue Cover CLI..."
                         mkdir -p dcover
-                        # Hier werden ENV-Variablen erst zur Laufzeit vom Shell-Interpreter expandiert.
                         wget "$DIFFBLUE_RELEASE_URL" -O dcover/dcover.zip -q
                         unzip -o dcover/dcover.zip -d dcover
                         echo "export DIFFBLUE_COVER_LOCATION=dcover/dcover" >> "$WORKSPACE/env.sh"
                       '''
                     }
                   }
+
                   stage('Generate Tests with Diffblue') {
                     steps {
                       sh '''
@@ -68,6 +79,7 @@ jobs:
                       '''
                     }
                   }
+
                   stage('New Coverage after Diffblue') {
                     steps {
                       sh 'mvn verify'
