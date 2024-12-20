@@ -69,7 +69,7 @@ jobs:
                   stage('Generate Tests with Diffblue') {
                     steps {
                       sh '''
-                        source \$WORKSPACE/env.sh
+                        . \$WORKSPACE/env.sh
                         echo "Run Diffblue Cover to generate tests..."
                         \$DIFFBLUE_COVER_LOCATION ci activate "\$DIFFBLUE_LICENSE_KEY" build validate create
                       '''
