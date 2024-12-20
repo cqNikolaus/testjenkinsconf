@@ -13,8 +13,7 @@ jobs:
       pipelineJob('Samples/Coverage') {
         definition {
           cps {
-            // Dreifach Single-Quotes sorgen für einen reinen String ohne GString-Parsing
-            script('''
+            script("""
               pipeline {
                 agent {
                   docker {
@@ -23,10 +22,9 @@ jobs:
                   }
                 }
                 environment {
-                  // Nur statische Variable hier
                   DIFFBLUE_RELEASE_URL = 'https://release.diffblue.com/cli/latest'
+                  DIFFBLUE_LICENSE_KEY = credentials('diffblue-license-key')
                 }
-
                 stages {
                   stage('Checkout') {
                     steps {
@@ -36,7 +34,6 @@ jobs:
                       )
                     }
                   }
-
                   stage('Initial Test & Coverage') {
                     steps {
                       sh 'mvn clean verify'
@@ -46,40 +43,26 @@ jobs:
                       )
                     }
                   }
-
-                  stage('Load Credentials') {
-                    steps {
-                      withCredentials([string(credentialsId: 'diffblue-license-key', variable: 'DIFFBLUE_LICENSE_KEY')]) {
-                        sh '''
-                          echo "export DIFFBLUE_LICENSE_KEY=\\"$DIFFBLUE_LICENSE_KEY\\"" >> "$WORKSPACE/env.sh"
-                        '''.replace('$', '\\$')
-                      }
-                    }
-                  }
-
                   stage('Setup Diffblue Cover CLI') {
                     steps {
                       sh '''
-                        source "$WORKSPACE/env.sh"
                         echo "Download and setup Diffblue Cover CLI..."
                         mkdir -p dcover
-                        wget "$DIFFBLUE_RELEASE_URL" -O dcover/dcover.zip -q
+                        wget "\$DIFFBLUE_RELEASE_URL" -O dcover/dcover.zip -q
                         unzip -o dcover/dcover.zip -d dcover
-                        echo "export DIFFBLUE_COVER_LOCATION=dcover/dcover" >> "$WORKSPACE/env.sh"
-                      '''.replace('$', '\\$')
+                        echo "export DIFFBLUE_COVER_LOCATION=dcover/dcover" >> \$WORKSPACE/env.sh
+                      '''
                     }
                   }
-
                   stage('Generate Tests with Diffblue') {
                     steps {
                       sh '''
-                        source "$WORKSPACE/env.sh"
+                        source \$WORKSPACE/env.sh
                         echo "Run Diffblue Cover to generate tests..."
-                        "$DIFFBLUE_COVER_LOCATION" ci activate build validate create
-                      '''.replace('$', '\\$')
+                        \$DIFFBLUE_COVER_LOCATION ci activate build validate create
+                      '''
                     }
                   }
-
                   stage('New Coverage after Diffblue') {
                     steps {
                       sh 'mvn verify'
@@ -91,7 +74,7 @@ jobs:
                   }
                 }
               }
-            ''')
+            """)
           }
         }
       }
