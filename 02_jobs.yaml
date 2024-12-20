@@ -13,6 +13,7 @@ jobs:
       pipelineJob('Samples/Coverage') {
         definition {
           cps {
+            // Dreifach Single-Quotes sorgen für einen reinen String ohne GString-Parsing
             script('''
               pipeline {
                 agent {
@@ -22,7 +23,7 @@ jobs:
                   }
                 }
                 environment {
-                  // Nur statische Variablen hier!
+                  // Nur statische Variable hier
                   DIFFBLUE_RELEASE_URL = 'https://release.diffblue.com/cli/latest'
                 }
 
@@ -46,13 +47,12 @@ jobs:
                     }
                   }
 
-                  // Hier holen wir die Credentials rein, bevor wir sie in Setup Diffblue nutzen
                   stage('Load Credentials') {
                     steps {
                       withCredentials([string(credentialsId: 'diffblue-license-key', variable: 'DIFFBLUE_LICENSE_KEY')]) {
                         sh '''
                           echo "export DIFFBLUE_LICENSE_KEY=\\"$DIFFBLUE_LICENSE_KEY\\"" >> "$WORKSPACE/env.sh"
-                        '''
+                        '''.replace('$', '\\$')
                       }
                     }
                   }
@@ -66,7 +66,7 @@ jobs:
                         wget "$DIFFBLUE_RELEASE_URL" -O dcover/dcover.zip -q
                         unzip -o dcover/dcover.zip -d dcover
                         echo "export DIFFBLUE_COVER_LOCATION=dcover/dcover" >> "$WORKSPACE/env.sh"
-                      '''
+                      '''.replace('$', '\\$')
                     }
                   }
 
@@ -76,7 +76,7 @@ jobs:
                         source "$WORKSPACE/env.sh"
                         echo "Run Diffblue Cover to generate tests..."
                         "$DIFFBLUE_COVER_LOCATION" ci activate build validate create
-                      '''
+                      '''.replace('$', '\\$')
                     }
                   }
 
