@@ -10,7 +10,76 @@ jobs:
         description('Folder containing Samples')
       }
 
-
+      pipelineJob('Samples/Coverage') {
+        definition {
+          cps {
+            script('''
+              pipeline {
+                agent {
+                  docker {
+                    image 'maven:3.8.8-eclipse-temurin-8'
+                    args '-u root:root'
+                  }
+                }
+                environment {
+                  // URL zum aktuellsten Diffblue Cover CLI Release-Paket
+                  DIFFBLUE_RELEASE_URL = 'https://release.diffblue.com/cli/latest'
+                  // Lizenz-Key aus den Jenkins-Credentials holen
+                  DIFFBLUE_LICENSE_KEY = credentials('diffblue-license-key')
+                }
+                stages {
+                  stage('Checkout') {
+                    steps {
+                      git(
+                        url: 'https://github.com/cqNikolaus/petclinic',
+                        branch: 'musterloesung'
+                      )
+                    }
+                  }
+                  stage('Initial Test & Coverage') {
+                    steps {
+                      sh 'mvn clean verify'
+                      recordCoverage(
+                        tools: [jacocoAdapter('target/site/jacoco/jacoco.xml')],
+                        sourceCodeRetention: 'LAST_BUILD'
+                      )
+                    }
+                  }
+                  stage('Setup Diffblue Cover CLI') {
+                    steps {
+                      sh '''
+                        echo "Download and setup Diffblue Cover CLI..."
+                        mkdir -p dcover
+                        wget "$DIFFBLUE_RELEASE_URL" -O dcover/dcover.zip -q
+                        unzip -o dcover/dcover.zip -d dcover
+                        echo "export DIFFBLUE_COVER_LOCATION=dcover/dcover" >> $WORKSPACE/env.sh
+                      '''
+                    }
+                  }
+                  stage('Generate Tests with Diffblue') {
+                    steps {
+                      sh '''
+                        source $WORKSPACE/env.sh
+                        echo "Run Diffblue Cover to generate tests..."
+                        $DIFFBLUE_COVER_LOCATION ci activate build validate create
+                      '''
+                    }
+                  }
+                  stage('New Coverage after Diffblue') {
+                    steps {
+                      sh 'mvn verify'
+                      recordCoverage(
+                        tools: [jacocoAdapter('target/site/jacoco/jacoco.xml')],
+                        sourceCodeRetention: 'LAST_BUILD'
+                      )
+                    }
+                  }
+                }
+              }
+            ''')
+          }
+        }
+      }
 
       pipelineJob('Samples/Musterloesung') {
         definition {
