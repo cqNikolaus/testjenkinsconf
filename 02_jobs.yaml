@@ -13,7 +13,7 @@ jobs:
       pipelineJob('Samples/Coverage') {
         definition {
           cps {
-            script('''
+            script("""
               pipeline {
                 agent {
                   docker {
@@ -40,7 +40,7 @@ jobs:
                     steps {
                       sh 'mvn clean verify'
                       recordCoverage(
-                        tools: [jacocoAdapter('target/site/jacoco/jacoco.xml')],
+                        tools: [[parser: 'JACOCO', pattern: 'target/site/jacoco/jacoco.xml']],
                         sourceCodeRetention: 'LAST_BUILD'
                       )
                     }
@@ -69,14 +69,14 @@ jobs:
                     steps {
                       sh 'mvn verify'
                       recordCoverage(
-                        tools: [jacocoAdapter('target/site/jacoco/jacoco.xml')],
+                        tools: [[parser: 'JACOCO', pattern: 'target/site/jacoco/jacoco.xml']],
                         sourceCodeRetention: 'LAST_BUILD'
                       )
                     }
                   }
                 }
               }
-            ''')
+            """)
           }
         }
       }
