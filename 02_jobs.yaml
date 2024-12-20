@@ -23,7 +23,7 @@ jobs:
                 }
                 environment {
                   DIFFBLUE_RELEASE_URL = 'https://release.diffblue.com/cli/latest'
-                  DIFFBLUE_LICENSE_KEY = credentials('diffblue-license-key')
+                  DBLUE_LICENSE_KEY = credentials('diffblue-license-key')
                 }
                 stages {
                   stage('Checkout') {
@@ -71,7 +71,7 @@ jobs:
                       sh '''
                         . \$WORKSPACE/env.sh
                         echo "Run Diffblue Cover to generate tests..."
-                        \$DIFFBLUE_COVER_LOCATION ci activate "\$DIFFBLUE_LICENSE_KEY" build validate create
+                        \$DIFFBLUE_COVER_LOCATION ci activate "\$DBLUE_LICENSE_KEY" build validate create
                       '''
                     }
                   }
