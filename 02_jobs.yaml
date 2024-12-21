@@ -57,10 +57,6 @@ jobs:
                     args '-u root:root'
                   }
                 }
-                environment {
-                  DIFFBLUE_RELEASE_URL = 'https://release.diffblue.com/cli/latest'
-                  DBLUE_LICENSE_KEY = credentials('diffblue-license-key')
-                }
                 stages {
                   stage('Checkout') {
                     steps {
@@ -87,24 +83,26 @@ jobs:
                       sh '''
                         echo "Download and setup Diffblue Cover CLI..."
                         mkdir -p dcover
-                        wget "\$DIFFBLUE_RELEASE_URL" -O dcover/dcover.zip -q
+                        wget 'https://release.diffblue.com/cli/latest' -O dcover/dcover.zip -q
                         unzip -o dcover/dcover.zip -d dcover
-                        echo "export DIFFBLUE_COVER_LOCATION=dcover/dcover" >> \$WORKSPACE/env.sh
                       '''
                     }
                   }
                   stage('Generate Tests with Diffblue') {
                     steps {
-                      withCredentials([usernamePassword(credentialsId: 'github-credentials', 
+                      withCredentials([
+                        usernamePassword(credentialsId: 'github-credentials', 
                                       usernameVariable: 'GH_USER', 
-                                      passwordVariable: 'GH_PASS')]) {
+                                      passwordVariable: 'GH_PASS'),
+                        string(credentialsId: 'diffblue-license-key', 
+                                      variable: 'DBLUE_LICENSE_KEY')
+                      ]) {
                         sh '''
-                          . \$WORKSPACE/env.sh
                           echo "Run Diffblue Cover to generate tests..."
                           git config user.name "cqNikolaus"
                           git config user.email "clemens.nikolaus@comquent.de"
                           git remote set-url origin "https://\$GH_USER:\$GH_PASS@github.com/cqNikolaus/petclinic.git"
-                          \$DIFFBLUE_COVER_LOCATION ci activate "\$DBLUE_LICENSE_KEY" build validate create
+                          dcover/dcover ci activate "\$DBLUE_LICENSE_KEY" build validate create
                         '''
                       }
                     }
