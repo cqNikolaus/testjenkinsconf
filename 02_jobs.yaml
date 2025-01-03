@@ -47,55 +47,81 @@ jobs:
       }
 
       pipelineJob('Samples/EvoSuite') {
-        definition {
-          cps {
-            script("""
-              pipeline {
-                agent any
-                stages {
-                  stage('Checkout') {
-                    steps {
-                      git url: 'https://github.com/cqNikolaus/petclinic', branch: 'musterloesung'
-                    }
-                  }
-                  stage('Build') {
-                    steps {
-                      sh 'mvn clean compile'
-                    }
-                  }
-                  stage('Generate Tests with EvoSuite') {
-                    steps {
-                      sh '''
-                        java -jar evosuite-master-1.2.0.jar -class <package.name.ClassName> -projectCP target/classes
-                      '''
-                    }
-                  }
-                  stage('Run Tests') {
-                    steps {
-                      sh 'mvn test'
-                    }
-                  }
-                  stage('Push Generated Tests') {
-                    steps {
-                      withCredentials([
-                        usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'GH_USER', passwordVariable: 'GH_PASS')
-                      ]) {
-                        sh '''
-                          git config user.name "cqNikolaus"
-                          git config user.email "clemens.nikolaus@comquent.de"
-                          git add src/test/java/
-                          git commit -m "Add generated tests by EvoSuite"
-                          git push https://$GH_USER:$GH_PASS@github.com/cqNikolaus/petclinic.git
-                        '''
+          definition {
+              cps {
+                  script("""
+                      pipeline {
+                          agent {
+                              docker {
+                                  image 'maven:3.8.8-eclipse-temurin-8'
+                                  args '-u root:root'
+                              }
+                          }
+                          stages {
+                              stage('Checkout') {
+                                  steps {
+                                      git(
+                                          url: 'https://github.com/cqNikolaus/petclinic',
+                                          branch: 'musterloesung'
+                                      )
+                                  }
+                              }
+                              stage('Configure Git Safe Directory') {
+                                  steps {
+                                      sh '''
+                                          git config --global --add safe.directory "\$WORKSPACE"
+                                      '''
+                                  }
+                              }
+                              stage('Install unzip') {
+                                  steps {
+                                      sh 'apt-get update && apt-get install -y unzip'
+                                  }
+                              }
+                              stage('Setup EvoSuite CLI') {
+                                  steps {
+                                      sh '''
+                                          echo "Download and setup EvoSuite CLI..."
+                                          mkdir -p evosuite
+                                          wget 'https://github.com/EvoSuite/evosuite/releases/download/v1.2.0/evosuite-master-1.2.0.jar' -O evosuite/evosuite.jar -q
+                                      '''
+                                  }
+                              }
+                              stage('Generate Tests with EvoSuite') {
+                                  steps {
+                                      sh '''
+                                          echo "Generating tests with EvoSuite..."
+                                          for cls in \$(find target/classes -name '*.class' | grep -v '\\$' | sed 's|target/classes/||; s|/|.|g; s|\\.class\$||'); do
+                                              echo "Generating tests for \$cls"
+                                              java -jar evosuite/evosuite.jar -class \$cls -projectCP target/classes -Dtest_dir=src/test/java/
+                                          done
+                                      '''
+                                  }
+                              }
+                              stage('Push Generated Tests') {
+                                  steps {
+                                      withCredentials([
+                                          usernamePassword(credentialsId: 'github-credentials', 
+                                                          usernameVariable: 'GH_USER', 
+                                                          passwordVariable: 'GH_PASS')
+                                      ]) {
+                                          sh '''
+                                              git config user.name "cqNikolaus"
+                                              git config user.email "clemens.nikolaus@comquent.de"
+                                              git add src/test/java/
+                                              git diff --cached --quiet || git commit -m "Add generated tests by EvoSuite"
+                                              git push https://\$GH_USER:\$GH_PASS@github.com/cqNikolaus/petclinic.git
+                                          '''
+                                      }
+                                  }
+                              }
+                          }
                       }
-                    }
-                  }
-                }
+                  """)
               }
-            """)
           }
-        }
       }
+
 
       pipelineJob('Samples/Musterloesung') {
               definition {
