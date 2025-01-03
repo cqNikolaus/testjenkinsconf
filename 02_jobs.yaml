@@ -46,63 +46,46 @@ jobs:
         }
       }
 
-      pipelineJob('Samples/Diffblue') {
+      pipelineJob('Samples/EvoSuite') {
         definition {
           cps {
             script("""
               pipeline {
-                agent {
-                  docker {
-                    image 'maven:3.8.8-eclipse-temurin-8'
-                    args '-u root:root'
-                  }
-                }
+                agent any
                 stages {
                   stage('Checkout') {
                     steps {
-                      git(
-                        url: 'https://github.com/cqNikolaus/petclinic',
-                        branch: 'musterloesung'
-                      )
+                      git url: 'https://github.com/cqNikolaus/petclinic', branch: 'musterloesung'
                     }
                   }
-                  stage('Configure Git Safe Directory') {
+                  stage('Build') {
+                    steps {
+                      sh 'mvn clean compile'
+                    }
+                  }
+                  stage('Generate Tests with EvoSuite') {
                     steps {
                       sh '''
-                        git config --global --add safe.directory "\$WORKSPACE"
+                        java -jar evosuite-master-1.2.0.jar -class <package.name.ClassName> -projectCP target/classes
                       '''
                     }
                   }
-                  stage('Install unzip') {
+                  stage('Run Tests') {
                     steps {
-                      sh 'apt-get update && apt-get install -y unzip'
+                      sh 'mvn test'
                     }
                   }
-                  stage('Setup Diffblue Cover CLI') {
-                    steps {
-                      sh '''
-                        echo "Download and setup Diffblue Cover CLI..."
-                        mkdir -p dcover
-                        wget 'https://release.diffblue.com/cli/latest' -O dcover/dcover.zip -q
-                        unzip -o dcover/dcover.zip -d dcover
-                      '''
-                    }
-                  }
-                  stage('Generate Tests with Diffblue') {
+                  stage('Push Generated Tests') {
                     steps {
                       withCredentials([
-                        usernamePassword(credentialsId: 'github-credentials', 
-                                      usernameVariable: 'GH_USER', 
-                                      passwordVariable: 'GH_PASS'),
-                        string(credentialsId: 'diffblue-license-key', 
-                                      variable: 'DBLUE_LICENSE_KEY')
+                        usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'GH_USER', passwordVariable: 'GH_PASS')
                       ]) {
                         sh '''
-                          echo "Run Diffblue Cover to generate tests..."
                           git config user.name "cqNikolaus"
                           git config user.email "clemens.nikolaus@comquent.de"
-                          git remote set-url origin "https://\$GH_USER:\$GH_PASS@github.com/cqNikolaus/petclinic.git"
-                          dcover/dcover ci activate "\$DBLUE_LICENSE_KEY" build validate create
+                          git add src/test/java/
+                          git commit -m "Add generated tests by EvoSuite"
+                          git push https://$GH_USER:$GH_PASS@github.com/cqNikolaus/petclinic.git
                         '''
                       }
                     }
