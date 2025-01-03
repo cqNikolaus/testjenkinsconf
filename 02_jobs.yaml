@@ -46,7 +46,7 @@ jobs:
         }
       }
 
-      pipelineJob('Samples/Diffblue') {
+      pipelineJob('Samples/Randoop') {
         definition {
           cps {
             script("""
@@ -73,36 +73,51 @@ jobs:
                       '''
                     }
                   }
-                  stage('Install unzip') {
-                    steps {
-                      sh 'apt-get update && apt-get install -y unzip'
-                    }
-                  }
-                  stage('Setup Diffblue Cover CLI') {
+                  stage('Install Randoop') {
                     steps {
                       sh '''
-                        echo "Download and setup Diffblue Cover CLI..."
-                        mkdir -p dcover
-                        wget 'https://release.diffblue.com/cli/latest' -O dcover/dcover.zip -q
-                        unzip -o dcover/dcover.zip -d dcover
+                        apt-get update && apt-get install -y wget unzip
+                        wget https://github.com/randoop/randoop/releases/download/v4.3.0/randoop-4.3.0.zip -O randoop.zip
+                        unzip -o randoop.zip -d randoop
                       '''
                     }
                   }
-                  stage('Generate Tests with Diffblue') {
+                  stage('Build Project') {
+                    steps {
+                      sh '''
+                        mvn clean package
+                      '''
+                    }
+                  }
+                  stage('Generate Tests with Randoop') {
+                    steps {
+                      sh '''
+                        # Randoop für das gesamte Projekt (petclinic.jar)
+                        # time-limit=120 -> 2 Minuten (anpassbar)
+                        java -cp "randoop/randoop-4.3.0.jar:target/petclinic.jar" randoop.main.Main gentests \\
+                          --testjar=target/petclinic.jar \\
+                          --time-limit=600 \\
+                          --junit-output-dir=src/test/java
+                      '''
+                    }
+                  }
+                  stage('Push Generated Tests') {
                     steps {
                       withCredentials([
-                        usernamePassword(credentialsId: 'github-credentials', 
-                                      usernameVariable: 'GH_USER', 
-                                      passwordVariable: 'GH_PASS'),
-                        string(credentialsId: 'diffblue-license-key', 
-                                      variable: 'DBLUE_LICENSE_KEY')
+                        usernamePassword(
+                          credentialsId: 'github-credentials',
+                          usernameVariable: 'GH_USER',
+                          passwordVariable: 'GH_PASS'
+                        )
                       ]) {
                         sh '''
-                          echo "Run Diffblue Cover to generate tests..."
+                          echo "Committing and pushing Randoop tests..."
                           git config user.name "cqNikolaus"
                           git config user.email "clemens.nikolaus@comquent.de"
                           git remote set-url origin "https://\$GH_USER:\$GH_PASS@github.com/cqNikolaus/petclinic.git"
-                          dcover/dcover ci activate "\$DBLUE_LICENSE_KEY" build validate create
+                          git add src/test/java
+                          git commit -m "Add Randoop tests"
+                          git push origin HEAD
                         '''
                       }
                     }
@@ -115,20 +130,20 @@ jobs:
       }
 
       pipelineJob('Samples/Musterloesung') {
-              definition {
-                cpsScm {
-                  scm {
-                    git {
-                      remote {
-                        name('origin')
-                        url('https://gitlab.comquent.academy/tn00/petclinic.git')
-                      }
-                      branch('musterloesung')
-                    }
-                  }
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  name('origin')
+                  url('https://gitlab.comquent.academy/tn00/petclinic.git')
                 }
+                branch('musterloesung')
               }
             }
+          }
+        }
+      }
 
       pipelineJob('Samples/Parallel') {
         definition {
