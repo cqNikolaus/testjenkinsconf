@@ -88,7 +88,11 @@ jobs:
                           echo "Erzeuge Jacoco Coverage (mvn clean verify) und generiere Tests via Qodo-Cover..."
                           mvn clean verify
 
-                          qodo-cover generate-tests \
+                          cover-agent \
+                            --source-file-path src/main/java/org/springframework/samples/petclinic \
+                            --test-file-path src/test/java/org/springframework/samples/petclinic \
+                            --code-coverage-report-path target/site/jacoco/jacoco.xml \
+                            --test-command "mvn clean verify" \
                             --project-path . \
                             --api-key "\$OPENAI_API_KEY" \
                             --coverage-type jacoco \
