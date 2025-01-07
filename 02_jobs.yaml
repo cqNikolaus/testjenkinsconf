@@ -93,10 +93,9 @@ jobs:
                             --test-file-path "src/test/java/org/springframework/samples/petclinic" \
                             --code-coverage-report-path "target/site/jacoco/jacoco.xml" \
                             --test-command "mvn clean verify" \
-                            --project-path "." \
-                            --api-key "\$OPENAI_API_KEY" \
+                            --model "openai/gpt4o" \
+                            --api-base "\$OPENAI_API_KEY" \
                             --coverage-type "jacoco" \
-                            --coverage-path "target/site/jacoco/jacoco.xml" \
                             --desired-coverage 95
                         '''
                       }
