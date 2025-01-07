@@ -70,7 +70,7 @@ jobs:
                     steps {
                       sh '''
                         # Hier verwenden wir "$WORKSPACE" (Shell-Expansion):
-                        git config --global --add safe.directory "$WORKSPACE"
+                        git config --global --add safe.directory "\$WORKSPACE"
                       '''
                     }
                   }
@@ -91,7 +91,7 @@ jobs:
 
                           qodo-cover generate-tests \
                             --project-path . \
-                            --api-key "$OPENAI_API_KEY" \
+                            --api-key "\$OPENAI_API_KEY" \
                             --coverage-type jacoco \
                             --coverage-path "target/site/jacoco/jacoco.xml" \
                             --desired-coverage 95
@@ -111,7 +111,7 @@ jobs:
                         sh '''
                           git config user.name "cqNikolaus"
                           git config user.email "clemens.nikolaus@comquent.de"
-                          git remote set-url origin "https://$GH_USER:$GH_PASS@github.com/cqNikolaus/petclinic.git"
+                          git remote set-url origin "https://\$GH_USER:\$GH_PASS@github.com/cqNikolaus/petclinic.git"
                           git add .
                           git commit -m "Add generated tests from Qodo-Cover"
                           git push origin HEAD
