@@ -78,37 +78,24 @@ jobs:
                       sh '''
                         apt-get update && apt-get install -y python3-pip
                         pip install poetry
-                        cat <<EOF > pyproject.toml
-                  [tool.poetry]
-                  name = "cover-agent"
-                  version = "0.0.0"
-                  description = "Cover Agent Tool"
-                  authors = ["QodoAI"]
-                  license = "AGPL-3.0 license"
-                  readme = "README.md"
-                  [tool.poetry.dependencies]
-                  python = "^3.9"
-                  EOF
-
-                        # Qodo-Cover installieren
-                        poetry add git+https://github.com/qodo-ai/qodo-cover.git
                       '''
                     }
                   }
-                  stage('Full Repo Coverage') {
+                  stage('Coverage and Test generation') {
                     steps {
                       withCredentials([
                         string(credentialsId: 'openai-api-key', variable: 'OPENAI_API_KEY')
                       ]) {
                         sh '''
-                          poetry run cover-agent-full-repo \
-                            --project-language="java" \
-                            --project-root="." \
-                            --code-coverage-report-path="target/site/jacoco/jacoco.xml" \
-                            --test-command="mvn clean verify" \
-                            --coverage-type="jacoco" \
-                            --desired-coverage=95 \
-                            --model=gpt-4o \
+                          cover-agent \
+                          --source-file-path="src/main/java/org/springframework/samples/petclinic/owner/OwnerController.java" \
+                          --test-file-path="src/test/java/org/springframework/samples/petclinic/owner/OwnerControllerTest.java" \
+                          --code-coverage-report-path="target/site/jacoco/jacoco.xml" \
+                          --test-command="mvn clean verify" \
+                          --test-command-dir="$(pwd)" \
+                          --coverage-type="jacoco" \
+                          --desired-coverage=95 \
+                          --model="gpt-4o"
                         '''
                       }
                     }
