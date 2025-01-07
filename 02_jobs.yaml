@@ -73,30 +73,40 @@ jobs:
                       '''
                     }
                   }
-                  stage('Install Qodo-Cover') {
+                  stage('Install Tools') {
                     steps {
-                      sh 'apt-get update && apt-get install -y python3-pip'
-                      sh 'pip install git+https://github.com/qodo-ai/qodo-cover.git'
+                      sh '''
+                        apt-get update && apt-get install -y python3-pip
+                        pip install poetry
+                        cat <<EOF > pyproject.toml
+              [tool.poetry]
+              name = "cover-agent"
+              version = "0.0.0"
+              description = "Cover Agent Tool"
+              authors = ["QodoAI"]
+              license = "AGPL-3.0 license"
+              readme = "README.md"
+              EOF
+
+                        # Qodo-Cover installieren
+                        poetry add git+https://github.com/qodo-ai/qodo-cover.git
+                      '''
                     }
                   }
-                  stage('Generate & Verify Coverage') {
+                  stage('Full Repo Coverage') {
                     steps {
                       withCredentials([
                         string(credentialsId: 'openai-api-key', variable: 'OPENAI_API_KEY')
                       ]) {
                         sh '''
-                          echo "Erzeuge Jacoco Coverage (mvn clean verify) und generiere Tests via Qodo-Cover..."
-                          mvn clean verify
-
-                          cover-agent \
-                            --source-file-path "src/main/java/org/springframework/samples/petclinic" \
-                            --test-file-path "src/test/java/org/springframework/samples/petclinic" \
-                            --code-coverage-report-path "target/site/jacoco/jacoco.xml" \
-                            --test-command "mvn clean verify" \
-                            --model "openai/gpt4o" \
-                            --api-base "\$OPENAI_API_KEY" \
-                            --coverage-type "jacoco" \
-                            --desired-coverage 95
+                          poetry run cover-agent-full-repo \
+                            --project-language="java" \
+                            --project-root="." \
+                            --code-coverage-report-path="target/site/jacoco/jacoco.xml" \
+                            --test-command="mvn clean verify" \
+                            --coverage-type="jacoco" \
+                            --desired-coverage=95 \
+                            --model=gpt-4o \
                         '''
                       }
                     }
