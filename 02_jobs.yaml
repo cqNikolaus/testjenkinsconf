@@ -49,7 +49,7 @@ jobs:
       pipelineJob('Samples/Qodo-Cover') {
         definition {
           cps {
-            script('''
+            script("""
               pipeline {
                 agent {
                   docker {
@@ -69,7 +69,6 @@ jobs:
                   stage('Configure Git Safe Directory') {
                     steps {
                       sh '''
-                        # Hier verwenden wir "$WORKSPACE" (Shell-Expansion):
                         git config --global --add safe.directory "\$WORKSPACE"
                       '''
                     }
@@ -121,7 +120,7 @@ jobs:
                   }
                 }
               }
-            ''')
+            """)
           }
         }
       }
