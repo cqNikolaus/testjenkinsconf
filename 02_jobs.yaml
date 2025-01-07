@@ -79,14 +79,16 @@ jobs:
                         apt-get update && apt-get install -y python3-pip
                         pip install poetry
                         cat <<EOF > pyproject.toml
-              [tool.poetry]
-              name = "cover-agent"
-              version = "0.0.0"
-              description = "Cover Agent Tool"
-              authors = ["QodoAI"]
-              license = "AGPL-3.0 license"
-              readme = "README.md"
-              EOF
+                  [tool.poetry]
+                  name = "cover-agent"
+                  version = "0.0.0"
+                  description = "Cover Agent Tool"
+                  authors = ["QodoAI"]
+                  license = "AGPL-3.0 license"
+                  readme = "README.md"
+                  [tool.poetry.dependencies]
+                  python = "^3.9"
+                  EOF
 
                         # Qodo-Cover installieren
                         poetry add git+https://github.com/qodo-ai/qodo-cover.git
