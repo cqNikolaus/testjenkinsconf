@@ -46,7 +46,7 @@ jobs:
         }
       }
 
-      pipelineJob('Samples/Diffblue') {
+      pipelineJob('Samples/Qodo-Cover') {
         definition {
           cps {
             script("""
@@ -73,36 +73,38 @@ jobs:
                       '''
                     }
                   }
-                  stage('Install unzip') {
+                  stage('Install Qodoo-Cover') {
                     steps {
-                      sh 'apt-get update && apt-get install -y unzip'
+                      sh 'pip install qodoo-cover'
                     }
                   }
-                  stage('Setup Diffblue Cover CLI') {
+                  stage('Generate Tests with Qodoo-Cover') {
                     steps {
-                      sh '''
-                        echo "Download and setup Diffblue Cover CLI..."
-                        mkdir -p dcover
-                        wget 'https://release.diffblue.com/cli/latest' -O dcover/dcover.zip -q
-                        unzip -o dcover/dcover.zip -d dcover
-                      '''
+                      withCredentials([
+                        string(credentialsId: 'openai-api-key', 
+                                      variable: 'OPENAI_API_KEY')
+                      ]) {
+                        sh '''
+                          echo "Generate tests with Qodoo-Cover"
+                          qodoo-cover generate-tests --project-path . --api-key "\$OPENAI_API_KEY"
+                        '''
+                      }
                     }
                   }
-                  stage('Generate Tests with Diffblue') {
+                  stage('Push Results') {
                     steps {
                       withCredentials([
                         usernamePassword(credentialsId: 'github-credentials', 
                                       usernameVariable: 'GH_USER', 
-                                      passwordVariable: 'GH_PASS'),
-                        string(credentialsId: 'diffblue-license-key', 
-                                      variable: 'DBLUE_LICENSE_KEY')
+                                      passwordVariable: 'GH_PASS')
                       ]) {
                         sh '''
-                          echo "Run Diffblue Cover to generate tests..."
                           git config user.name "cqNikolaus"
                           git config user.email "clemens.nikolaus@comquent.de"
                           git remote set-url origin "https://\$GH_USER:\$GH_PASS@github.com/cqNikolaus/petclinic.git"
-                          dcover/dcover ci activate "\$DBLUE_LICENSE_KEY" build validate create
+                          git add .
+                          git commit -m "Add generated tests from Qodo-Cover"
+                          git push origin HEAD
                         '''
                       }
                     }
