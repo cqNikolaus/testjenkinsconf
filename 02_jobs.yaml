@@ -68,9 +68,7 @@ jobs:
                   }
                   stage('Configure Git Safe Directory') {
                     steps {
-                      sh '''
-                        git config --global --add safe.directory "\$WORKSPACE"
-                      '''
+                      sh 'git config --global --add safe.directory "\$WORKSPACE"'
                     }
                   }
                   stage('Install Qodo-Cover') {
@@ -79,15 +77,21 @@ jobs:
                       sh 'pip install qodo-cover'
                     }
                   }
-                  stage('Generate Tests with Qodo-Cover') {
+                  stage('Generate & Verify Coverage') {
                     steps {
                       withCredentials([
-                        string(credentialsId: 'openai-api-key', 
-                                      variable: 'OPENAI_API_KEY')
+                        string(credentialsId: 'openai-api-key', variable: 'OPENAI_API_KEY')
                       ]) {
                         sh '''
-                          echo "Generate tests with Qodo-Cover"
-                          qodo-cover generate-tests --project-path . --api-key "\$OPENAI_API_KEY"
+                          echo "Erzeuge Jacoco Coverage (mvn clean verify) und generiere Tests via Qodo-Cover..."
+                          mvn clean verify
+
+                          qodo-cover generate-tests \
+                            --project-path . \
+                            --api-key "\$OPENAI_API_KEY" \
+                            --coverage-type jacoco \
+                            --coverage-path "target/site/jacoco/jacoco.xml" \
+                            --desired-coverage 95
                         '''
                       }
                     }
@@ -95,14 +99,16 @@ jobs:
                   stage('Push Results') {
                     steps {
                       withCredentials([
-                        usernamePassword(credentialsId: 'github-credentials', 
-                                      usernameVariable: 'GH_USER', 
-                                      passwordVariable: 'GH_PASS')
+                        usernamePassword(
+                          credentialsId: 'github-credentials',
+                          usernameVariable: 'GH_USER',
+                          passwordVariable: 'GH_PASS'
+                        )
                       ]) {
                         sh '''
                           git config user.name "cqNikolaus"
                           git config user.email "clemens.nikolaus@comquent.de"
-                          git remote set-url origin "https://\$GH_USER:\$GH_PASS@github.com/cqNikolaus/petclinic.git"
+                          git remote set-url origin "https://$GH_USER:$GH_PASS@github.com/cqNikolaus/petclinic.git"
                           git add .
                           git commit -m "Add generated tests from Qodo-Cover"
                           git push origin HEAD
@@ -118,20 +124,20 @@ jobs:
       }
 
       pipelineJob('Samples/Musterloesung') {
-              definition {
-                cpsScm {
-                  scm {
-                    git {
-                      remote {
-                        name('origin')
-                        url('https://gitlab.comquent.academy/tn00/petclinic.git')
-                      }
-                      branch('musterloesung')
-                    }
-                  }
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  name('origin')
+                  url('https://gitlab.comquent.academy/tn00/petclinic.git')
                 }
+                branch('musterloesung')
               }
             }
+          }
+        }
+      }
 
       pipelineJob('Samples/Parallel') {
         definition {
