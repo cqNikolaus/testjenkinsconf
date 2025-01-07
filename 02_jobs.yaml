@@ -49,7 +49,7 @@ jobs:
       pipelineJob('Samples/Qodo-Cover') {
         definition {
           cps {
-            script("""
+            script('''
               pipeline {
                 agent {
                   docker {
@@ -68,13 +68,16 @@ jobs:
                   }
                   stage('Configure Git Safe Directory') {
                     steps {
-                      sh 'git config --global --add safe.directory "\$WORKSPACE"'
+                      sh '''
+                        # Hier verwenden wir "$WORKSPACE" (Shell-Expansion):
+                        git config --global --add safe.directory "$WORKSPACE"
+                      '''
                     }
                   }
                   stage('Install Qodo-Cover') {
                     steps {
                       sh 'apt-get update && apt-get install -y python3-pip'
-                      sh 'pip install qodo-cover'
+                      sh 'pip install git+https://github.com/qodo-ai/qodo-cover.git'
                     }
                   }
                   stage('Generate & Verify Coverage') {
@@ -88,7 +91,7 @@ jobs:
 
                           qodo-cover generate-tests \
                             --project-path . \
-                            --api-key "\$OPENAI_API_KEY" \
+                            --api-key "$OPENAI_API_KEY" \
                             --coverage-type jacoco \
                             --coverage-path "target/site/jacoco/jacoco.xml" \
                             --desired-coverage 95
@@ -118,10 +121,11 @@ jobs:
                   }
                 }
               }
-            """)
+            ''')
           }
         }
       }
+
 
       pipelineJob('Samples/Musterloesung') {
         definition {
