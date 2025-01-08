@@ -92,7 +92,7 @@ jobs:
                           --test-file-path="src/test/java/org/springframework/samples/petclinic/owner/OwnerControllerTest.java" \
                           --code-coverage-report-path="target/site/jacoco/jacoco.xml" \
                           --test-command="./gradlew clean test jacocoTestReport" \
-                          --test-command-dir="$(pwd)" \
+                          --test-command-dir="\$(pwd)" \
                           --coverage-type="jacoco" \
                           --desired-coverage=95 \
                           --model="gpt-4o"
