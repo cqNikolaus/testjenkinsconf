@@ -77,7 +77,7 @@ jobs:
                     steps {
                       sh '''
                         apt-get update && apt-get install -y python3-pip
-                        pip install poetry
+                        pip install git+https://github.com/qodo-ai/qodo-cover.git
                       '''
                     }
                   }
