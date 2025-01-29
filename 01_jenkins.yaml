@@ -95,14 +95,15 @@ credentials:
       - usernamePassword:
           description: "Account Credentials fuer den SSH Agent"
           id: "agent-account"
-          password: ${readFile:/run/secrets/agent-password.secrets}
+          password: "${AGENT_PASS}"
           scope: GLOBAL
-          username: "jenkins"
+          username: "jenkins-agent"
       - usernamePassword:
           id: "cq-academy-gitlab-access"
           password: "${readFile:/run/secrets/gitlab-password.secrets}"
           scope: GLOBAL
           username: "tn00"
+
 
 appearance:
   locale:
