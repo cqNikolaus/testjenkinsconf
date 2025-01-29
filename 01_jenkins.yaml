@@ -64,17 +64,7 @@ jenkins:
   - permanent:
       name: "MyAgent01"
       nodeDescription: "My static agent via ssh"
-      nodeProperties:
-      - toolLocation:
-          locations:
-          - home: "/home/jenkins/tools/java/jdk1.8.0_192"
-            key: "hudson.model.JDK$DescriptorImpl@JDK8"
-          - home: "/home/jenkins/tools/maven/apache-maven-3.5.4"
-            key: "hudson.tasks.Maven$MavenInstallation$DescriptorImpl@MVN354"
-          - home: "/home/jenkins/tools/maven/apache-maven-3.6.3"
-            key: "hudson.tasks.Maven$MavenInstallation$DescriptorImpl@MVN363"
-          - home: "/home/jenkins/tools/maven/apache-maven-3.8.5"
-            key: "hudson.tasks.Maven$MavenInstallation$DescriptorImpl@MVN385"      
+      nodeProperties:    
       labelString: "demo linux ssh"
       launcher:
         ssh:
@@ -120,14 +110,14 @@ tool:
       name: "Default"
   jdk:
     installations:
-    - home: "/usr/share/jenkins/tools/java/jdk1.8.0_192"
+    - home: "/home/jenkins/tools/java/jdk1.8.0_192"
       name: "JDK8"
   maven:
     installations:
-    - home: "/usr/share/jenkins/tools/maven/apache-maven-3.5.4"
+    - home: "/home/jenkins/tools/maven/apache-maven-3.5.4"
       name: "MVN354"
-    - home: "/usr/share/jenkins/tools/maven/apache-maven-3.6.3"
+    - home: "/home/jenkins/tools/maven/apache-maven-3.6.3"
       name: "MVN363"
-    - home: "/usr/share/jenkins/tools/maven/apache-maven-3.8.8"
+    - home: "/home/jenkins/tools/maven/apache-maven-3.8.8"
       name: "MVN388"
 
