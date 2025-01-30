@@ -74,7 +74,7 @@ jenkins:
           - home: "/home/jenkins/tools/maven/apache-maven-3.6.3"
             key: "hudson.tasks.Maven$MavenInstallation$DescriptorImpl@MVN363"
           - home: "/home/jenkins/tools/maven/apache-maven-3.8.5"
-            key: "hudson.tasks.Maven$MavenInstallation$DescriptorImpl@MVN385"      
+            key: "hudson.tasks.Maven$MavenInstallation$DescriptorImpl@MVN388"      
       labelString: "demo linux ssh"
       launcher:
         ssh:
@@ -84,7 +84,7 @@ jenkins:
           sshHostKeyVerificationStrategy: "nonVerifyingKeyVerificationStrategy"
       mode: EXCLUSIVE
       numExecutors: 2
-      remoteFS: "/home/jenkins/agent"
+      remoteFS: "/home/jenkins-agent/agent"
       retentionStrategy: "always"
       
 
