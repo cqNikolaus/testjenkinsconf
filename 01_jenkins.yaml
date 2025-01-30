@@ -73,7 +73,7 @@ jenkins:
             key: "hudson.tasks.Maven$MavenInstallation$DescriptorImpl@MVN354"
           - home: "/home/jenkins/tools/maven/apache-maven-3.6.3"
             key: "hudson.tasks.Maven$MavenInstallation$DescriptorImpl@MVN363"
-          - home: "/home/jenkins/tools/maven/apache-maven-3.8.5"
+          - home: "/home/jenkins/tools/maven/apache-maven-3.8.8"
             key: "hudson.tasks.Maven$MavenInstallation$DescriptorImpl@MVN388"      
       labelString: "demo linux ssh"
       launcher:
